@@ -2,13 +2,22 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import DATABASE_URL
 
+import os
 # Robust Database Engine for High Concurrency (100k+ Users)
+# Added pool_pre_ping to check for dropped connections (Network Unreachable fix)
 engine = create_engine(
     DATABASE_URL,
-    pool_size=50,          # Keep 50 connections open at all times
-    max_overflow=50,       # Allow an extra 50 connections if traffic spikes
-    pool_timeout=45,       # Seconds to wait for an available connection before failing
-    pool_recycle=1800      # Reconnect after 30 minutes to drop stale connections
+    pool_size=10,          
+    max_overflow=20,       
+    pool_timeout=30,       
+    pool_recycle=1800,
+    pool_pre_ping=True,    # 👈 Fixes dropped connections from Supabase
+    connect_args={
+        "keepalives": 1,
+        "keepalives_idle": 30,
+        "keepalives_interval": 10,
+        "keepalives_count": 5
+    }
 )
 
 SessionLocal = sessionmaker(
