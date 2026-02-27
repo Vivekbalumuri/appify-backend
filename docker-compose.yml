@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: appify_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: appify_user
+      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB: appify_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: appify_pgbouncer
+    environment:
+      DB_USER: appify_user
+      DB_PASSWORD: secure_password
+      DB_HOST: db
+      DB_NAME: appify_db
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 100
+    ports:
+      - "6432:5432"
+    depends_on:
+      - db
+
+  redis:
+    image: redis:7-alpine
+    container_name: appify_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  postgres_data:

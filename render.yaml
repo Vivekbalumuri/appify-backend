@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: appify-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: "HS256"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080" # 7 days
+      - key: ML_SERVICE_URL
+        sync: false
+
+  - type: psql
+    name: appify-db
+    plan: standard # Or whatever plan fits 100k users. Can start with starter/standard.
+    ipAllowList: [] # empty means all IP addresses can connect, change for production
+    # Note: On a real cloud scale we would add PgBouncer in front of this, 
+    # but Render offers connection pooling natively.
